@@ -3,12 +3,14 @@
     public class Usuario
     {
         public int UsuarioID { get; set; }
-        public string Nombre { get; set; }
-        public string Email { get; set; }
-        public string PasswordHash { get; set; }
-        public string Rol { get; set; }
-        public DateTime FechaRegistro { get; set; }
-        public ICollection<Pedido> Pedidos { get; set; }
-        public ICollection<Reseña> Reseñas { get; set; }
+        public string Nombre { get; set; } = string.Empty;
+        public string Email { get; set; } = string.Empty;
+        public string PasswordHash { get; set; } = string.Empty;
+        public string Rol { get; set; } = "Consumidor";
+        public DateTime FechaRegistro { get; set; } = DateTime.UtcNow;
+
+        // Relaciones
+        public ICollection<Pedido>? Pedidos { get; set; }
+        public ICollection<Reseña>? Reseñas { get; set; }
     }
 }
