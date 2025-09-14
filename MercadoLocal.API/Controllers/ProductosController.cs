@@ -1,7 +1,8 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using MercadoLocal.API.Data;
 using MercadoLocal.API.Models;
+using MercadoLocal.API.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
-using MercadoLocal.API.Data;
+using Microsoft.EntityFrameworkCore;
 
 namespace MercadoLocal.API.Controllers
 {
@@ -9,41 +10,43 @@ namespace MercadoLocal.API.Controllers
     [Route("api/[controller]")]
     public class ProductosController : ControllerBase
     {
-       private readonly ApplicationDbContext _context;
-    public ProductosController(ApplicationDbContext context) => _context = context;
-    [HttpGet]
-    public async Task<ActionResult<IEnumerable<Producto>>> GetProductos()
-        => await _context.Productos.Include(p => p.Productor).ToListAsync();
-    [HttpGet("{id}")]
-    public async Task<ActionResult<Producto>> GetProducto(int id)
-    {
-        var producto = await _context.Productos.FindAsync(id);
-        if (producto == null) return NotFound();
-        return producto;
-    }
-    [HttpPost]
-    public async Task<ActionResult<Producto>> PostProducto(Producto producto)
-    {
-        _context.Productos.Add(producto);
-        await _context.SaveChangesAsync();
-        return CreatedAtAction(nameof(GetProducto), new { id = producto.ProductoID }, producto);
-    }
-    [HttpPut("{id}")]
-    public async Task<IActionResult> PutProducto(int id, Producto producto)
-    {
-        if (id != producto.ProductoID) return BadRequest();
-        _context.Entry(producto).State = EntityState.Modified;
-        await _context.SaveChangesAsync();
-        return NoContent();
-    }
-    [HttpDelete("{id}")]
-    public async Task<IActionResult> DeleteProducto(int id)
-    {
-        var producto = await _context.Productos.FindAsync(id);
-        if (producto == null) return NotFound();
-        _context.Productos.Remove(producto);
-        await _context.SaveChangesAsync();
-        return NoContent();
-    }
+        private readonly IProductoService _productoService;
+        public ProductosController(IProductoService productoService)
+        {
+            _productoService = productoService;
+        }
+        [HttpGet]
+        public async Task<IActionResult> GetAll()
+        {
+            var productos = await _productoService.GetAllAsync();
+            return Ok(productos);
+        }
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetById(int id)
+        {
+            var producto = await _productoService.GetByIdAsync(id);
+            if (producto == null) return NotFound();
+            return Ok(producto);
+        }
+        [HttpPost]
+        public async Task<IActionResult> Create(Producto producto)
+        {
+            var created = await _productoService.CreateAsync(producto);
+            return CreatedAtAction(nameof(GetById), new { id = created.ProductoID }, created);
+        }
+        [HttpPut("{id}")]
+        public async Task<IActionResult> Update(int id, Producto producto)
+        {
+            var updated = await _productoService.UpdateAsync(id, producto);
+            if (updated == null) return NotFound();
+            return Ok(updated);
+        }
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> Delete(int id)
+        {
+            var deleted = await _productoService.DeleteAsync(id);
+            if (!deleted) return NotFound();
+            return NoContent();
+        }
     }
 }
